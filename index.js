@@ -3,7 +3,13 @@ const { Telegraf, Markup } = require("telegraf");
 const bot = new Telegraf("7155151107:AAGVs9LJwj8W4L1l5iS37H7McXNwFbsZ4Xo");
 
 bot.command("start", (ctx) => {
-  ctx.reply("Привет! Я бот. Я умею рассылать вам сообщения.");
+  ctx.reply(
+    "Привет! Я бот. Я умею рассылать вам сообщения.",
+    Markup.inlineKeyboard([
+      [Markup.button.callback("Отправить текст", "send_text")],
+      [Markup.button.callback("Изменить сообщение", "edit_message")],
+    ])
+  );
 });
 
 bot.on("text", (ctx) => {
