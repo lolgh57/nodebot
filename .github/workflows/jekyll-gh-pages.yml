@@ -1,0 +1,33 @@
+name: Run Telegram Bot
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install pm2 globally
+        run: npm install pm2 -g
+
+      - name: Run bot with pm2
+        run: pm2 start index.js --name "telegram-bot"
+
+      - name: Save pm2 process list and configuraton
+        run: |
+          pm2 save
+          pm2 startup
