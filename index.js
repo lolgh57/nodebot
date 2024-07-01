@@ -1,7 +1,7 @@
 const { Telegraf, Markup, Scenes, session } = require("telegraf");
 
 const bot = new Telegraf("7155151107:AAGVs9LJwj8W4L1l5iS37H7McXNwFbsZ4Xo");
-// Define scenes
+
 const scenarioTypeScene = new Scenes.BaseScene("scenarioTypeScene");
 const superPowerScene = new Scenes.BaseScene("superPowerScene");
 const codingLanguageScene = new Scenes.BaseScene("codingLanguageScene");
@@ -36,6 +36,7 @@ scenarioTypeScene.action("SUPER_ACTION", (ctx) => {
   ctx.scene.enter("superPowerScene");
 });
 
+// Super Power Scene
 superPowerScene.enter((ctx) => {
   ctx.reply(
     "Какую суперсилу вы хотите?",
@@ -45,7 +46,7 @@ superPowerScene.enter((ctx) => {
   );
 });
 
-scenarioTypeScene.action("CODING_ACTION", (ctx) => {
+superPowerScene.action("CODING_ACTION", (ctx) => {
   ctx.answerCbQuery("Вы выбрали 'Хочу программировать'");
   ctx.session.myData.preferenceType = "CODING";
   ctx.scene.enter("codingLanguageScene");
@@ -61,6 +62,7 @@ superPowerScene.leave((ctx) => {
   ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
 });
 
+// Coding Language Scene
 codingLanguageScene.enter((ctx) => {
   ctx.reply("Какой язык программирования вам интересен?");
 });
