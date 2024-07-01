@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "telegram-bot",
-      script: "nodemon",
+      script: "node_modules/nodemon/bin/nodemon.js",
       args: "index.js",
       watch: true,
       ignore_watch: ["node_modules"],
@@ -13,7 +13,6 @@ module.exports = {
         NODE_ENV: "production",
       },
       exec_mode: "fork",
-      interpreter: "node_modules/.bin/nodemon",
     },
   ],
 };
