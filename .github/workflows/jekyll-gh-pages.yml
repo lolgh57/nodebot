@@ -25,4 +25,4 @@ jobs:
         run: npm install pm2 -g
 
       - name: Run bot with pm2
-        run: pm2 start npm --name "telegram-bot" -- start
+        run: pm2 start ecosystem.config.js
