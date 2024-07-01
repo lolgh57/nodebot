@@ -53,18 +53,17 @@ superPowerScene.action("CODING_ACTION", (ctx) => {
 });
 
 superPowerScene.on("message", (ctx) => {
-  ctx.session.myData.superpower = ctx.message.text;
-  ctx.reply(`Вы выбрали суперсилу: ${ctx.message.text}`);
-  ctx.scene.leave();
+  if (ctx.session.myData.preferenceType === "CODING") {
+    ctx.scene.enter("codingLanguageScene");
+  } else {
+    ctx.session.myData.superpower = ctx.message.text;
+    ctx.reply(`Вы выбрали суперсилу: ${ctx.message.text}`);
+    ctx.scene.leave();
+  }
 });
 
-superPowerScene.leave((ctx) => {
-  ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
-});
-
-// Coding Language Scene
 codingLanguageScene.enter((ctx) => {
-  ctx.reply("Какой язык программирования вам интересен?");
+  ctx.editMessageText("Какой язык программирования вам интересен?");
 });
 
 codingLanguageScene.on("message", (ctx) => {
@@ -73,11 +72,18 @@ codingLanguageScene.on("message", (ctx) => {
   ctx.scene.leave();
 });
 
+superPowerScene.leave((ctx) => {
+  if (ctx.session.myData.preferenceType !== "CODING") {
+    ctx.reply(
+      "Спасибо за ваше время! Мы постараемся помочь с вашими желаниями."
+    );
+  }
+});
+
 codingLanguageScene.leave((ctx) => {
   ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
 });
 
-// Middleware for unrecognized messages
 scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
 superPowerScene.use((ctx) =>
   ctx.reply("Пожалуйста, напишите желаемую суперсилу")
@@ -85,5 +91,19 @@ superPowerScene.use((ctx) =>
 codingLanguageScene.use((ctx) =>
   ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
 );
+
+// superPowerScene.on("message", (ctx) => {
+//   ctx.session.myData.superpower = ctx.message.text;
+//   ctx.reply(`Вы выбрали суперсилу: ${ctx.message.text}`);
+//   ctx.scene.leave();
+// });
+
+// // Coding Language Scene
+
+// codingLanguageScene.on("message", (ctx) => {
+//   ctx.session.myData.language = ctx.message.text;
+//   ctx.reply(`Вам нравится язык программирования: ${ctx.message.text}`);
+//   ctx.scene.leave();
+// });
 
 bot.launch();
