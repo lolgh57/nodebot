@@ -12,6 +12,8 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
       },
+      exec_mode: "fork",
+      interpreter: "node_modules/.bin/nodemon",
     },
   ],
 };
