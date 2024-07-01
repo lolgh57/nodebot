@@ -25,4 +25,4 @@ jobs:
         run: npm install pm2 -g
 
       - name: Run bot with pm2
-        run: pm2 start index.js --name "telegram-bot"
+        run: pm2 start npm --name "telegram-bot" -- start
