@@ -26,7 +26,6 @@ scenarioTypeScene.enter((ctx) => {
     "Привет! Я бот. Я умею рассылать вам сообщения. Какие пожелания?",
     Markup.inlineKeyboard([
       [Markup.button.callback("Хочу суперсилу", "SUPER_ACTION")],
-      [Markup.button.callback("Хочу программировать", "CODING_ACTION")],
     ])
   );
 });
@@ -45,7 +44,12 @@ scenarioTypeScene.action("CODING_ACTION", (ctx) => {
 
 // Super Power Scene
 superPowerScene.enter((ctx) => {
-  ctx.reply("Какую суперсилу вы хотите?");
+  ctx.reply(
+    "Какую суперсилу вы хотите?",
+    Markup.inlineKeyboard([
+      [Markup.button.callback("Хочу программировать", "CODING_ACTION")],
+    ])
+  );
 });
 
 superPowerScene.on("message", (ctx) => {
@@ -73,13 +77,13 @@ codingLanguageScene.leave((ctx) => {
   ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
 });
 
-// Middleware for unrecognized messages
-scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
-superPowerScene.use((ctx) =>
-  ctx.reply("Пожалуйста, напишите желаемую суперсилу")
-);
-codingLanguageScene.use((ctx) =>
-  ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
-);
+// // Middleware for unrecognized messages
+// scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
+// superPowerScene.use((ctx) =>
+//   ctx.reply("Пожалуйста, напишите желаемую суперсилу")
+// );
+// codingLanguageScene.use((ctx) =>
+//   ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
+// );
 
 bot.launch();
