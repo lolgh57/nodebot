@@ -1,7 +1,7 @@
 const { Telegraf, Markup, Scenes, session } = require("telegraf");
 
-const bot = new Telegraf("7155151107:AAGVs9LJwj8W4L1l5iS37H7McXNwFbsZ4Xo");
-// Define scenes
+const bot = new Telegraf("YOUR_BOT_TOKEN");
+
 const scenarioTypeScene = new Scenes.BaseScene("scenarioTypeScene");
 const superPowerScene = new Scenes.BaseScene("superPowerScene");
 const codingLanguageScene = new Scenes.BaseScene("codingLanguageScene");
@@ -36,12 +36,6 @@ scenarioTypeScene.action("SUPER_ACTION", (ctx) => {
   ctx.scene.enter("superPowerScene");
 });
 
-scenarioTypeScene.action("CODING_ACTION", (ctx) => {
-  ctx.answerCbQuery("Вы выбрали 'Хочу программировать'");
-  ctx.session.myData.preferenceType = "CODING";
-  ctx.scene.enter("codingLanguageScene");
-});
-
 // Super Power Scene
 superPowerScene.enter((ctx) => {
   ctx.reply(
@@ -50,6 +44,12 @@ superPowerScene.enter((ctx) => {
       [Markup.button.callback("Хочу программировать", "CODING_ACTION")],
     ])
   );
+});
+
+superPowerScene.action("CODING_ACTION", (ctx) => {
+  ctx.answerCbQuery("Вы выбрали 'Хочу программировать'");
+  ctx.session.myData.preferenceType = "CODING";
+  ctx.scene.enter("codingLanguageScene");
 });
 
 superPowerScene.on("message", (ctx) => {
@@ -77,13 +77,13 @@ codingLanguageScene.leave((ctx) => {
   ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
 });
 
-// // Middleware for unrecognized messages
-// scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
-// superPowerScene.use((ctx) =>
-//   ctx.reply("Пожалуйста, напишите желаемую суперсилу")
-// );
-// codingLanguageScene.use((ctx) =>
-//   ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
-// );
+// Middleware for unrecognized messages
+scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
+superPowerScene.use((ctx) =>
+  ctx.reply("Пожалуйста, напишите желаемую суперсилу")
+);
+codingLanguageScene.use((ctx) =>
+  ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
+);
 
 bot.launch();
