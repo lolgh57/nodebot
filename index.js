@@ -1,6 +1,11 @@
 const { Telegraf, Markup, Scenes, session } = require("telegraf");
+const TypingMiddleware = require("./middleware/TypingMiddleware");
 
 const bot = new Telegraf("7155151107:AAGVs9LJwj8W4L1l5iS37H7McXNwFbsZ4Xo");
+
+const typingMiddleware = new TypingMiddleware();
+
+bot.use(typingMiddleware);
 
 const scenarioTypeScene = new Scenes.BaseScene("scenarioTypeScene");
 const policyScene = new Scenes.BaseScene("policyScene");
@@ -10,20 +15,7 @@ const stage = new Scenes.Stage([scenarioTypeScene, policyScene, shopScene]);
 
 bot.use(session());
 bot.use(stage.middleware());
-bot.use(async (ctx, next) => {
-  const originalReply = ctx.reply;
-  ctx.reply = async (text, extra) => {
-    await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (typeof extra === "undefined") {
-      extra = { parse_mode: "HTML" };
-    } else if (typeof extra === "object") {
-      extra.parse_mode = "HTML";
-    }
-    return originalReply.call(ctx, text, extra);
-  };
-  return next();
-});
+
 bot.command("start", (ctx) => {
   if (!ctx.session.myData) {
     ctx.session.myData = {};
@@ -32,8 +24,8 @@ bot.command("start", (ctx) => {
 });
 
 scenarioTypeScene.enter((ctx) => {
-  ctx.reply(
-    "Привет! Я бот, продающий услуги. Перейди в магазин и выбери услугу!",
+  ctx.replyWithHTML(
+    "Привет! Я <b>бот</b>, продающий услуги. Перейди в магазин и выбери услугу!",
     Markup.inlineKeyboard([[Markup.button.callback("Магазин", "SHOP_ACTION")]])
   );
 });
@@ -75,7 +67,7 @@ policyScene.action("DISAGREE_ACTION", (ctx) => {
 });
 
 shopScene.enter((ctx) => {
-  ctx.reply(
+  ctx.replyWithHTML(
     "Добро пожаловать в магазин!\n\n<b>Услуга</b>: Стать программистом\n<b>Цена</b>: 1000$",
     Markup.inlineKeyboard([
       [
