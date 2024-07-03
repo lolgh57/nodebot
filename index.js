@@ -3,107 +3,98 @@ const { Telegraf, Markup, Scenes, session } = require("telegraf");
 const bot = new Telegraf("7155151107:AAGVs9LJwj8W4L1l5iS37H7McXNwFbsZ4Xo");
 
 const scenarioTypeScene = new Scenes.BaseScene("scenarioTypeScene");
-const superPowerScene = new Scenes.BaseScene("superPowerScene");
-const codingLanguageScene = new Scenes.BaseScene("codingLanguageScene");
+const policyScene = new Scenes.BaseScene("policyScene");
+const shopScene = new Scenes.BaseScene("shopScene");
 
-const stage = new Scenes.Stage([
-  scenarioTypeScene,
-  superPowerScene,
-  codingLanguageScene,
-]);
+const stage = new Scenes.Stage([scenarioTypeScene, policyScene, shopScene]);
 
 bot.use(session());
 bot.use(stage.middleware());
-
+bot.use(async (ctx, next) => {
+  const originalReply = ctx.reply;
+  ctx.reply = async (text, extra) => {
+    await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (typeof extra === "undefined") {
+      extra = { parse_mode: "HTML" };
+    } else if (typeof extra === "object") {
+      extra.parse_mode = "HTML";
+    }
+    return originalReply.call(ctx, text, extra);
+  };
+  return next();
+});
 bot.command("start", (ctx) => {
-  ctx.session.myData = {};
+  if (!ctx.session.myData) {
+    ctx.session.myData = {};
+  }
   ctx.scene.enter("scenarioTypeScene");
 });
 
-// Scenario Type Scene
 scenarioTypeScene.enter((ctx) => {
   ctx.reply(
-    "Привет! Я бот. Я умею рассылать вам сообщения. Какие пожелания?",
-    Markup.inlineKeyboard([
-      [Markup.button.callback("Хочу суперсилу", "SUPER_ACTION")],
-    ])
+    "Привет! Я бот, продающий услуги. Перейди в магазин и выбери услугу!",
+    Markup.inlineKeyboard([[Markup.button.callback("Магазин", "SHOP_ACTION")]])
   );
 });
 
-scenarioTypeScene.action("SUPER_ACTION", (ctx) => {
-  ctx.answerCbQuery("Вы выбрали 'Хочу суперсилу'");
-  ctx.session.myData.preferenceType = "SUPER";
-  ctx.scene.enter("superPowerScene");
-});
-
-// Super Power Scene
-superPowerScene.enter((ctx) => {
-  ctx.reply(
-    "Какую суперсилу вы хотите?",
-    Markup.inlineKeyboard([
-      [Markup.button.callback("Хочу программировать", "CODING_ACTION")],
-    ])
-  );
-});
-
-superPowerScene.action("CODING_ACTION", (ctx) => {
-  ctx.answerCbQuery("Вы выбрали 'Хочу программировать'");
-  ctx.session.myData.preferenceType = "CODING";
-  ctx.scene.enter("codingLanguageScene");
-});
-
-superPowerScene.on("message", (ctx) => {
-  if (ctx.session.myData.preferenceType === "CODING") {
-    ctx.scene.enter("codingLanguageScene");
+scenarioTypeScene.action("SHOP_ACTION", (ctx) => {
+  if (ctx.session.myData.agreedToPolicy) {
+    ctx.answerCbQuery("Вы перешли в магазин");
+    ctx.scene.enter("shopScene");
   } else {
-    ctx.session.myData.superpower = ctx.message.text;
-    ctx.reply(`Вы выбрали суперсилу: ${ctx.message.text}`);
-    ctx.scene.leave();
+    ctx.answerCbQuery("Примите соглашение с политикой");
+    ctx.scene.enter("policyScene");
   }
 });
 
-codingLanguageScene.enter((ctx) => {
-  ctx.editMessageText("Какой язык программирования вам интересен?");
+policyScene.enter((ctx) => {
+  ctx.reply(
+    "Согласны ли вы с условиями политики компании?",
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback("Да", "AGREE_ACTION"),
+        Markup.button.callback("Нет", "DISAGREE_ACTION"),
+      ],
+    ])
+  );
 });
 
-codingLanguageScene.on("message", (ctx) => {
-  ctx.session.myData.language = ctx.message.text;
-  ctx.reply(`Вам нравится язык программирования: ${ctx.message.text}`);
+policyScene.action("AGREE_ACTION", (ctx) => {
+  ctx.session.myData.agreedToPolicy = true;
+  ctx.answerCbQuery("Спасибо за согласие с нашей политикой!");
+  ctx.scene.enter("shopScene");
+});
+
+policyScene.action("DISAGREE_ACTION", (ctx) => {
+  ctx.session.myData.agreedToPolicy = false;
+  ctx.reply(
+    "Вы не согласились с политикой компании. К сожалению, мы не можем продолжить."
+  );
   ctx.scene.leave();
 });
 
-superPowerScene.leave((ctx) => {
-  if (ctx.session.myData.preferenceType !== "CODING") {
-    ctx.reply(
-      "Спасибо за ваше время! Мы постараемся помочь с вашими желаниями."
-    );
-  }
+shopScene.enter((ctx) => {
+  ctx.reply(
+    "Добро пожаловать в магазин!\n\n<b>Услуга</b>: Стать программистом\n<b>Цена</b>: 1000$",
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback("Купить", "BUY_ACTION"),
+        Markup.button.callback("Назад", "BACK_ACTION"),
+      ],
+    ])
+  );
 });
 
-codingLanguageScene.leave((ctx) => {
-  ctx.reply("Спасибо за ваше время! Мы постараемся помочь с вашими желаниями.");
+shopScene.action("BUY_ACTION", (ctx) => {
+  ctx.answerCbQuery("Вы купили услугу!");
+  ctx.reply("Спасибо за покупку!");
+  ctx.scene.leave();
 });
 
-scenarioTypeScene.use((ctx) => ctx.reply("Пожалуйста, выберите действие"));
-superPowerScene.use((ctx) =>
-  ctx.reply("Пожалуйста, напишите желаемую суперсилу")
-);
-codingLanguageScene.use((ctx) =>
-  ctx.reply("Пожалуйста, напишите интересующий вас язык программирования")
-);
-
-// superPowerScene.on("message", (ctx) => {
-//   ctx.session.myData.superpower = ctx.message.text;
-//   ctx.reply(`Вы выбрали суперсилу: ${ctx.message.text}`);
-//   ctx.scene.leave();
-// });
-
-// // Coding Language Scene
-
-// codingLanguageScene.on("message", (ctx) => {
-//   ctx.session.myData.language = ctx.message.text;
-//   ctx.reply(`Вам нравится язык программирования: ${ctx.message.text}`);
-//   ctx.scene.leave();
-// });
+shopScene.action("BACK_ACTION", (ctx) => {
+  ctx.answerCbQuery("Вы вернулись в меню");
+  ctx.scene.enter("scenarioTypeScene");
+});
 
 bot.launch();
